@@ -1,11 +1,7 @@
 #include "stats.h"
-#include <iostream>
-#include <algorithm>
-#include <array>
 
 Stats::Stats()
 {
-
     methodStats = {
                     {"GET", 0},
                     {"PUT", 0},
@@ -53,11 +49,7 @@ HttpRequest ParseRequest(string_view line)
     parts[idx++ % protocol_parts_number] = token;
   }
 
-  HttpRequest request = {parts.at(0), parts.at(1), parts.at(2)};
-//  cout <<"request.method:{" <<request.method << "}" << endl <<
-//            "request.uri:{" << request.uri << "}" <<endl <<
-//               "request.protocol:{"<<request.protocol << "}" << endl << endl;
-  return request;
+  return {parts.at(0), parts.at(1), parts.at(2)};
 }
 
 
@@ -81,10 +73,10 @@ void Stats::AddUri(string_view uri)
 
 const map<string_view, int> &Stats::GetMethodStats() const
 {
-  return  methodStats;
+  return methodStats;
 }
 
 const map<string_view, int> &Stats::GetUriStats() const
 {
-  return  uriStats;
+  return uriStats;
 }

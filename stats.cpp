@@ -29,14 +29,8 @@ HttpRequest ParseRequest(string_view line)
 
   auto leading_space_eraser = [](string_view& sv)
   {
-    size_t space_counter = 0;
-    for(const auto& ch : sv) {
-      if (ch == ' ') {
-        space_counter++;
-      } else {
-        sv.remove_prefix(space_counter);
-        break;
-      }
+    while (!sv.empty() && isspace(sv[0])) {
+        sv.remove_prefix(1);
     }
   };
 

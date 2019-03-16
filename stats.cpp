@@ -1,68 +1,82 @@
 #include "stats.h"
 #include <iostream>
 #include <algorithm>
+#include <array>
 
 Stats::Stats()
 {
-  methodTypes.resize(5);
-  methodTypes = {
-                  "GET",
-                  "PUT",
-                  "POST",
-                  "DELETE",
-                  "UNKNOWN"
-                 };
-  uriTypes.resize(6);
-  uriTypes = {
-                "/",
-                "/order",
-                "/product",
-                "/basket",
-                "/help",
-                "unknown"
-              };
-  for(const auto& method : methodTypes){
-    methodStats[method] = 0;
-  }
-  for(const auto& uri : uriTypes){
-    methodStats[uri] = 0;
-  }
+
+    methodStats = {
+                    {"GET", 0},
+                    {"PUT", 0},
+                    {"POST", 0},
+                    {"DELETE", 0},
+                    {"UNKNOWN", 0},
+                  };
+    uriStats = {
+                {"/", 0},
+                {"/order", 0},
+                {"/product", 0},
+                {"/basket", 0},
+                {"/help", 0},
+                {"unknown", 0}
+               };
 }
 
 HttpRequest ParseRequest(string_view line)
 {
-  vector<string_view> parts(3);
+  const size_t protocol_parts_number = 3;
+  array<string_view, protocol_parts_number> parts;
+
   string_view delimiter = " ";
   string_view token;
-  size_t counter = 0;
 
- // auto pos = find_if(line.begin(), line.end(), bind1st(std::not_equal_to<char>(), ' '));
-  //line = line.substr(0, );
+  auto leading_space_eraser = [](string_view& sv)
+  {
+    size_t space_counter = 0;
+    for(const auto& ch : sv) {
+      if (ch == ' ') {
+        space_counter++;
+      } else {
+        sv.remove_prefix(space_counter);
+        break;
+      }
+    }
+  };
 
-  while(token != line){
-    token = line.substr(0,line.find_first_of(delimiter));
+  leading_space_eraser(line);
+
+  size_t idx = 0;
+  while(token != line) {
+    token = line.substr(0, line.find_first_of(delimiter));
     line = line.substr(line.find_first_of(delimiter) + 1);
-    parts.push_back(token);
+    parts[idx++ % protocol_parts_number] = token;
   }
-  for(const auto& i : parts){
-    static int j = 1;
-    cout << i << endl;
-    if(j++ % 3 == 0)
-      cout << "---------------------------------" << endl;
-  }
+
   HttpRequest request = {parts.at(0), parts.at(1), parts.at(2)};
+//  cout <<"request.method:{" <<request.method << "}" << endl <<
+//            "request.uri:{" << request.uri << "}" <<endl <<
+//               "request.protocol:{"<<request.protocol << "}" << endl << endl;
   return request;
 }
 
 
 void Stats::AddMethod(string_view method)
 {
-  this->methodStats[method]++;
+  if(this->methodStats.count(method) > 0){
+    this->methodStats[method]++;
+  } else {
+    this->methodStats["UNKNOWN"]++;
+  }
 }
 
 void Stats::AddUri(string_view uri)
 {
-  this->uriStats[uri]++;
+  if(this->uriStats.count(uri) > 0){
+    this->uriStats[uri]++;
+  } else {
+    this->uriStats["unknown"]++;
+  }
 }
 
 const map<string_view, int> &Stats::GetMethodStats() const
